@@ -6,15 +6,18 @@ Tương thích tuyệt đối Python 3.14
 
 import os
 import base64
+# pyrefly: ignore [missing-import]
 import numpy as np
 import csv
 
+# pyrefly: ignore [missing-import]
 from flask import Flask, render_template, request, jsonify
+# pyrefly: ignore [missing-import]
 from werkzeug.utils import secure_filename
 from numpy_ann import NumpyANN, CustomStandardScaler, get_iris_dataset, train_test_split_custom
 
 # ─── Cấu hình Flask ────────────────────────────────────────
-app = Flask(__name__)
+app = Flask(__name__, template_folder='templates', static_folder='static')
 app.config['SECRET_KEY']          = 'iris-ann-secret-2024'
 app.config['UPLOAD_FOLDER']       = 'uploads'
 app.config['MAX_CONTENT_LENGTH']  = 16 * 1024 * 1024  # 16 MB
@@ -43,11 +46,9 @@ state = {
 def allowed_file(filename, allowed_set):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_set
 
-
 @app.route('/')
 def index():
     return render_template('index.html')
-
 
 @app.route('/api/upload-dataset', methods=['POST'])
 def upload_dataset():
@@ -94,7 +95,6 @@ def upload_dataset():
     except Exception as e:
         return jsonify({'success': False, 'error': f'Lỗi đọc file: {str(e)}'})
 
-
 @app.route('/api/train', methods=['POST'])
 def train_model():
     try:
@@ -104,12 +104,7 @@ def train_model():
         lr          = float(body.get('lr', 0.01))
 
         if use_default or state['dataset_path'] is None:
-            from sklearn.datasets import load_iris
-            iris = load_iris()
-            X       = iris.data.astype(np.float32)
-            y_raw   = iris.target
-            class_names   = list(iris.target_names)
-            feature_names = list(iris.feature_names)
+            X, y_raw, class_names, feature_names = get_iris_dataset()
         else:
             fpath = state['dataset_path']
             with open(fpath, 'r', encoding='utf-8') as f:
@@ -121,7 +116,6 @@ def train_model():
             y_col = np.array([r[-1] for r in rows])
             feature_names = header[:-1]
             
-            # Simple manual Label Encoder
             unique_classes = np.unique(y_col)
             class_map = {name: i for i, name in enumerate(unique_classes)}
             y_raw = np.array([class_map[val] for val in y_col])
@@ -139,7 +133,6 @@ def train_model():
         
         history = model.fit(X_train, y_train)
 
-        # Đánh giá trên test set
         y_prob_test = model.predict_proba(X_test)
         test_acc = float(np.mean(np.argmax(y_prob_test, axis=1) == y_test)) * 100
         test_loss = -float(np.mean(np.log(y_prob_test[np.arange(len(y_test)), y_test] + 1e-8)))
@@ -168,7 +161,6 @@ def train_model():
     except Exception as e:
         import traceback
         return jsonify({'success': False, 'error': str(e), 'trace': traceback.format_exc()})
-
 
 @app.route('/api/predict-features', methods=['POST'])
 def predict_features():
@@ -204,7 +196,6 @@ def predict_features():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
-
 @app.route('/api/upload-image', methods=['POST'])
 def upload_image():
     if 'file' not in request.files:
@@ -236,7 +227,6 @@ def upload_image():
         })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
-
 
 @app.route('/api/status', methods=['GET'])
 def get_status():

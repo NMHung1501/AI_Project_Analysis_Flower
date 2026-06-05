@@ -28,7 +28,6 @@ const DEFAULT_COLOR = '#a855f7';
 // ════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
   initDropZone('dz-dataset', 'fi-dataset', handleDatasetFile);
-  initDropZone('dz-img',     'fi-img',     handleImageFile);
   initCardGlow();
   checkStatus();
 });
@@ -350,16 +349,6 @@ function drawChart(history) {
   });
 }
 
-// ════════════════════════════════════════════════
-// TABS — switch between manual / image
-// ════════════════════════════════════════════════
-function switchTab(tab) {
-  ['num', 'img'].forEach(t => {
-    $('tab-' + t).classList.toggle('active', t === tab);
-    $('panel-' + t).classList.toggle('hidden', t !== tab);
-  });
-  hide('pred-out');
-}
 
 // ════════════════════════════════════════════════
 // QUICK FILL
@@ -386,44 +375,6 @@ async function predictNums() {
   await runPrediction(features);
 }
 
-// ════════════════════════════════════════════════
-// IMAGE — upload handler
-// ════════════════════════════════════════════════
-async function handleImageFile(file) {
-  const fd = new FormData();
-  fd.append('file', file);
-  toast('⏳ Đang tải ảnh…');
-
-  try {
-    const r = await fetch('/api/upload-image', { method: 'POST', body: fd });
-    const d = await r.json();
-    if (!d.success) return toast('❌ ' + d.error, 'err');
-
-    $('preview-img').src = d.image_b64;
-    $('img-meta').textContent = `${d.filename} · ${d.size_kb} KB`;
-    show('img-layout');
-    toast('✅ Ảnh đã tải lên!', 'ok');
-  } catch (e) {
-    toast('❌ Lỗi upload ảnh', 'err');
-  }
-}
-
-// ════════════════════════════════════════════════
-// PREDICT — from image panel
-// ════════════════════════════════════════════════
-async function predictImg() {
-  if (!state.modelTrained) return toast('⚠️ Vui lòng huấn luyện mô hình trước!', 'err');
-
-  const features = [
-    parseFloat($('if-sl').value),
-    parseFloat($('if-sw').value),
-    parseFloat($('if-pl').value),
-    parseFloat($('if-pw').value),
-  ];
-  if (features.some(isNaN)) return toast('⚠️ Vui lòng nhập đầy đủ 4 đặc trưng', 'err');
-
-  await runPrediction(features);
-}
 
 // ════════════════════════════════════════════════
 // PREDICTION CORE
@@ -448,9 +399,24 @@ function renderPrediction(d) {
   const cls  = d.predicted_class.toLowerCase();
   const meta = FLOWER_META[cls] || { emoji: '🌸', color: DEFAULT_COLOR, bar: DEFAULT_BAR };
 
+  // Image examples URLs from Wikimedia Commons
+  const imageUrls = {
+    'setosa': 'https://upload.wikimedia.org/wikipedia/commons/a/a7/Irissetosa1.jpg',
+    'versicolor': 'https://upload.wikimedia.org/wikipedia/commons/4/41/Iris_versicolor_3.jpg',
+    'virginica': 'https://upload.wikimedia.org/wikipedia/commons/9/9f/Iris_virginica.jpg'
+  };
+
   $('pred-emoji').textContent = meta.emoji;
   $('pred-name').textContent  = d.predicted_class.charAt(0).toUpperCase() + d.predicted_class.slice(1);
   $('pred-conf').textContent  = `Độ tự tin: ${d.confidence}%`;
+
+  const imgSrc = imageUrls[cls];
+  if (imgSrc) {
+    $('pred-img-src').src = imgSrc;
+    $('pred-img-src').style.display = 'block';
+  } else {
+    $('pred-img-src').style.display = 'none';
+  }
 
   // Probability bars
   const list = $('prob-list');
