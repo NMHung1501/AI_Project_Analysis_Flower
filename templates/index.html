@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🌸 ANN Iris Classifier</title>
+  <meta name="description" content="Phân loại hoa Iris bằng Mạng Nơron Nhân Tạo — Upload dataset, train & predict" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300..900;1,14..32,300..900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+
+  <!-- ╔══════════════════════════════════╗ -->
+  <!-- ║           BACKGROUND             ║ -->
+  <!-- ╚══════════════════════════════════╝ -->
+  <div class="bg-layer" aria-hidden="true">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="grid-overlay"></div>
+  </div>
+
+  <!-- ╔══════════════════════════════════╗ -->
+  <!-- ║              HEADER              ║ -->
+  <!-- ╚══════════════════════════════════╝ -->
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-icon">🌸</span>
+        <span class="logo-text">IrisANN</span>
+      </div>
+      <div id="global-status" class="global-status">
+        <span class="gs-dot"></span>
+        <span id="gs-label">Sẵn sàng</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ╔══════════════════════════════════╗ -->
+  <!-- ║              HERO                ║ -->
+  <!-- ╚══════════════════════════════════╝ -->
+  <section class="hero">
+    <p class="hero-eyebrow">Academic · TensorFlow / Keras · Scikit-learn</p>
+    <h1 class="hero-title">
+      Phân loại hoa Iris<br/>
+      <span class="gradient-text">bằng Mạng Nơron ANN</span>
+    </h1>
+    <p class="hero-sub">Upload dataset → Huấn luyện → Dự đoán ngay lập tức</p>
+
+    <!-- Step indicator -->
+    <div class="step-trail">
+      <div class="step-item active" id="trail-1">
+        <div class="step-dot">1</div>
+        <span>Dataset</span>
+      </div>
+      <div class="step-line" id="line-1-2"></div>
+      <div class="step-item" id="trail-2">
+        <div class="step-dot">2</div>
+        <span>Huấn luyện</span>
+      </div>
+      <div class="step-line" id="line-2-3"></div>
+      <div class="step-item" id="trail-3">
+        <div class="step-dot">3</div>
+        <span>Dự đoán</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ╔══════════════════════════════════╗ -->
+  <!-- ║             MAIN                 ║ -->
+  <!-- ╚══════════════════════════════════╝ -->
+  <main class="main-wrap">
+
+    <!-- ─────────────────────────────────
+         CARD 1 — DATASET UPLOAD
+    ───────────────────────────────────── -->
+    <article class="card" id="card-dataset">
+      <header class="card-head">
+        <div class="card-num">01</div>
+        <div>
+          <h2>📂 Upload Dataset</h2>
+          <p>File CSV / Excel — cột cuối là nhãn phân loại</p>
+        </div>
+      </header>
+
+      <!-- Drop Zone -->
+      <div class="drop-zone" id="dz-dataset" role="button" tabindex="0"
+           aria-label="Khu vực kéo thả file dataset">
+        <input type="file" id="fi-dataset" accept=".csv,.xlsx,.xls" hidden />
+        <div class="dz-icon">📊</div>
+        <p class="dz-title">Kéo thả file vào đây</p>
+        <p class="dz-sub">hoặc <button class="link-btn" onclick="document.getElementById('fi-dataset').click()">duyệt máy tính</button></p>
+        <p class="dz-hint">CSV · XLSX · XLS &nbsp;·&nbsp; tối đa 16 MB</p>
+      </div>
+
+      <!-- OR divider -->
+      <div class="or-row">
+        <span class="or-line"></span>
+        <span class="or-text">hoặc</span>
+        <span class="or-line"></span>
+      </div>
+
+      <button class="btn btn-ghost" id="btn-default" onclick="useDefault()">
+        🌿 Dùng dataset Iris mặc định (sklearn)
+      </button>
+
+      <!-- Dataset info -->
+      <div id="ds-info" class="ds-info hidden">
+        <div class="ds-info-row">
+          <div class="ds-chip" id="ds-chip-name">📄 —</div>
+          <div class="ds-chips">
+            <span class="chip chip-purple" id="ds-rows">— hàng</span>
+            <span class="chip chip-cyan"   id="ds-cols">— cột</span>
+          </div>
+        </div>
+        <div class="table-scroll">
+          <table id="ds-table">
+            <thead id="ds-thead"></thead>
+            <tbody id="ds-tbody"></tbody>
+          </table>
+        </div>
+        <p class="tbl-note">* Hiển thị 5 dòng đầu · Cột cuối = nhãn phân loại</p>
+      </div>
+    </article>
+
+    <!-- ─────────────────────────────────
+         CARD 2 — TRAIN
+    ───────────────────────────────────── -->
+    <article class="card" id="card-train">
+      <header class="card-head">
+        <div class="card-num">02</div>
+        <div>
+          <h2>🧠 Huấn luyện mô hình</h2>
+          <p>Kiến trúc ANN 3 lớp · Optimizer: Adam · Loss: Categorical Cross-Entropy</p>
+        </div>
+      </header>
+
+      <!-- Architecture viz -->
+      <div class="arch-wrap">
+        <div class="arch-node a-input">
+          <span class="an-emoji">📥</span>
+          <span class="an-name">Input</span>
+          <span class="an-detail">4 features</span>
+        </div>
+        <svg class="arch-arrow" viewBox="0 0 40 20"><path d="M0 10 L32 10 M28 5 L38 10 L28 15" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+        <div class="arch-node a-h1">
+          <span class="an-emoji">⚡</span>
+          <span class="an-name">Hidden 1</span>
+          <span class="an-detail">8 · ReLU</span>
+        </div>
+        <svg class="arch-arrow" viewBox="0 0 40 20"><path d="M0 10 L32 10 M28 5 L38 10 L28 15" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+        <div class="arch-node a-h2">
+          <span class="an-emoji">⚡</span>
+          <span class="an-name">Hidden 2</span>
+          <span class="an-detail">6 · ReLU</span>
+        </div>
+        <svg class="arch-arrow" viewBox="0 0 40 20"><path d="M0 10 L32 10 M28 5 L38 10 L28 15" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+        <div class="arch-node a-output">
+          <span class="an-emoji">🎯</span>
+          <span class="an-name">Output</span>
+          <span class="an-detail">3 · Softmax</span>
+        </div>
+      </div>
+
+      <!-- Hyperparams -->
+      <div class="hp-row">
+        <div class="hp-field">
+          <label for="hp-epochs">Epochs</label>
+          <input type="number" id="hp-epochs" value="50" min="5" max="500" />
+        </div>
+        <div class="hp-field">
+          <label for="hp-batch">Batch Size</label>
+          <input type="number" id="hp-batch" value="10" min="1" max="256" />
+        </div>
+        <div class="hp-field">
+          <label for="hp-lr">Learning Rate</label>
+          <input type="number" id="hp-lr" value="0.01" min="0.0001" max="1" step="0.001" />
+        </div>
+      </div>
+
+      <button class="btn btn-primary" id="btn-train" onclick="trainModel()">
+        <span id="btn-train-inner">⚡ Bắt đầu huấn luyện</span>
+        <div class="btn-spinner hidden" id="train-spin"></div>
+      </button>
+
+      <!-- Results -->
+      <div id="train-results" class="train-results hidden">
+        <div class="kpi-row">
+          <div class="kpi kpi-acc">
+            <div class="kpi-label">Accuracy</div>
+            <div class="kpi-val" id="kpi-acc">—</div>
+          </div>
+          <div class="kpi kpi-loss">
+            <div class="kpi-label">Loss</div>
+            <div class="kpi-val" id="kpi-loss">—</div>
+          </div>
+          <div class="kpi kpi-tr">
+            <div class="kpi-label">Train</div>
+            <div class="kpi-val" id="kpi-tr">—</div>
+          </div>
+          <div class="kpi kpi-ts">
+            <div class="kpi-label">Test</div>
+            <div class="kpi-val" id="kpi-ts">—</div>
+          </div>
+        </div>
+        <div class="chart-box">
+          <canvas id="chart" width="800" height="220"></canvas>
+        </div>
+      </div>
+    </article>
+
+    <!-- ─────────────────────────────────
+         CARD 3 — PREDICT
+    ───────────────────────────────────── -->
+    <article class="card" id="card-predict">
+      <header class="card-head">
+        <div class="card-num">03</div>
+        <div>
+          <h2>🔬 Dự đoán</h2>
+          <p>Nhập đặc trưng thủ công hoặc đính kèm ảnh hoa mẫu</p>
+        </div>
+      </header>
+
+      <!-- Tab bar -->
+      <div class="tabs" role="tablist">
+        <button class="tab active" id="tab-num"  role="tab" onclick="switchTab('num')">✏️ Nhập số liệu</button>
+        <button class="tab"        id="tab-img"  role="tab" onclick="switchTab('img')">🖼️ Upload ảnh</button>
+      </div>
+
+      <!-- Panel: manual -->
+      <div class="panel" id="panel-num" role="tabpanel">
+        <div class="feat-grid">
+          <div class="feat-field">
+            <label for="f-sl">Sepal Length <span class="unit">cm</span></label>
+            <input type="number" id="f-sl" value="5.1" step="0.1" min="0" />
+          </div>
+          <div class="feat-field">
+            <label for="f-sw">Sepal Width <span class="unit">cm</span></label>
+            <input type="number" id="f-sw" value="3.5" step="0.1" min="0" />
+          </div>
+          <div class="feat-field">
+            <label for="f-pl">Petal Length <span class="unit">cm</span></label>
+            <input type="number" id="f-pl" value="1.4" step="0.1" min="0" />
+          </div>
+          <div class="feat-field">
+            <label for="f-pw">Petal Width <span class="unit">cm</span></label>
+            <input type="number" id="f-pw" value="0.2" step="0.1" min="0" />
+          </div>
+        </div>
+
+        <div class="quick-row">
+          <span class="quick-label">Mẫu nhanh:</span>
+          <button class="qbtn" onclick="fill(5.1,3.5,1.4,0.2)">🌿 Setosa</button>
+          <button class="qbtn" onclick="fill(6.0,2.9,4.5,1.5)">🌺 Versicolor</button>
+          <button class="qbtn" onclick="fill(6.7,3.1,5.6,2.4)">🌼 Virginica</button>
+        </div>
+
+        <button class="btn btn-success" onclick="predictNums()">🔍 Dự đoán</button>
+      </div>
+
+      <!-- Panel: image -->
+      <div class="panel hidden" id="panel-img" role="tabpanel">
+        <div class="drop-zone dz-img" id="dz-img" role="button" tabindex="0"
+             aria-label="Khu vực kéo thả ảnh hoa">
+          <input type="file" id="fi-img" accept="image/*" hidden />
+          <div class="dz-icon">🖼️</div>
+          <p class="dz-title">Upload ảnh hoa mẫu</p>
+          <p class="dz-sub">hoặc <button class="link-btn" onclick="document.getElementById('fi-img').click()">chọn ảnh</button></p>
+          <p class="dz-hint">PNG · JPG · JPEG · GIF · WEBP</p>
+        </div>
+
+        <!-- Image + input layout -->
+        <div id="img-layout" class="img-layout hidden">
+          <div class="img-frame">
+            <img id="preview-img" src="" alt="Ảnh hoa mẫu" />
+            <p id="img-meta" class="img-meta"></p>
+          </div>
+          <div class="img-inputs">
+            <p class="img-note">📏 Nhập số liệu đo được từ ảnh hoa:</p>
+            <div class="feat-field">
+              <label for="if-sl">Sepal Length <span class="unit">cm</span></label>
+              <input type="number" id="if-sl" value="5.1" step="0.1" min="0"/>
+            </div>
+            <div class="feat-field">
+              <label for="if-sw">Sepal Width <span class="unit">cm</span></label>
+              <input type="number" id="if-sw" value="3.5" step="0.1" min="0"/>
+            </div>
+            <div class="feat-field">
+              <label for="if-pl">Petal Length <span class="unit">cm</span></label>
+              <input type="number" id="if-pl" value="1.4" step="0.1" min="0"/>
+            </div>
+            <div class="feat-field">
+              <label for="if-pw">Petal Width <span class="unit">cm</span></label>
+              <input type="number" id="if-pw" value="0.2" step="0.1" min="0"/>
+            </div>
+            <button class="btn btn-success" onclick="predictImg()">🔍 Dự đoán với ảnh này</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Prediction output -->
+      <div id="pred-out" class="pred-out hidden">
+        <div class="pred-header">
+          <div class="pred-emoji" id="pred-emoji">🌸</div>
+          <div class="pred-text">
+            <div class="pred-tag">Kết quả dự đoán</div>
+            <div class="pred-name" id="pred-name">—</div>
+            <div class="pred-conf" id="pred-conf">—</div>
+          </div>
+        </div>
+        <div class="prob-list" id="prob-list"></div>
+      </div>
+    </article>
+
+  </main>
+
+  <footer class="site-footer">
+    🌸 ANN Iris Classifier &nbsp;·&nbsp; TensorFlow / Keras &nbsp;·&nbsp; Flask &nbsp;·&nbsp; Academic Project
+  </footer>
+
+  <!-- Toast -->
+  <div id="toast" class="toast hidden" role="alert" aria-live="polite"></div>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
