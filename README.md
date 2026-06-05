@@ -46,4 +46,4 @@ Sau đó, mở trình duyệt web và truy cập vào địa chỉ: **http://127
 3. **Bước 3 - Dự Đoán**: Ở khu vực dự đoán, nhập kích thước cánh hoa/đài hoa (Sepal Length/Width, Petal Length/Width) rồi nhấn **Dự đoán**. Kết quả cùng với **ảnh hoa ví dụ** sẽ hiện ra ngay bên dưới!
 
 ## 🔄 Phiên Bản Cập Nhật
-- **Version 2**: Đã loại bỏ phần Upload ảnh thừa thãi ở bước dự đoán. Tự động hiển thị ảnh mẫu của loài hoa ngay khi hệ thống dự đoán xong từ số liệu đo đạc, giúp cải thiện trải nghiệm người dùng tối đa.
+- **Version 3**: Đã loại bỏ phần Upload ảnh thừa thãi ở bước dự đoán. Tự động hiển thị ảnh mẫu của loài hoa ngay khi hệ thống dự đoán xong từ số liệu đo đạc, giúp cải thiện trải nghiệm người dùng tối đa.
